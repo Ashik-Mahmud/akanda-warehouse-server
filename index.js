@@ -29,13 +29,24 @@ async function run(){
      await client.connect();
      console.log("DB CONNECTED.");
      const reviewsCollection =  client.db("reviews-db").collection("reviews");
+     const teamsCollection = client.db("teams-db").collection("teams")
      /* GET REVIEWS FROM MONGODB DATABASES */
      app.get("/reviews", async(req, res)=>{
          const query = {};
          const cursor = await reviewsCollection.find(query);
          const result = await cursor.toArray();
          res.send(result)
-     });     
+     });
+     
+     /* GET TEAMS FROM MONGODB DATABASES */
+     app.get("/teams", async(req, res) => {
+         const query = {};
+         const cursor = await teamsCollection.find(query);
+         const result = await cursor.toArray();
+         res.send({success: true, data: result})
+     })
+     
+     
 
 
     }catch(err){
