@@ -68,10 +68,13 @@ async function run(){
 
      /* GET ALL THE PRODUCTS FROM MONGODB */
      app.get("/products", async(req, res) => {
+         const limit = Number(req.query.limit);
+         const page = req.query.page;        
          const query = {};
          const cursor = await productsCollection.find(query);
-         const result = await cursor.toArray();
-         res.send({success: true, result: result})
+         const result = await cursor.skip(limit*page).limit(limit).toArray();
+         const count = await productsCollection.estimatedDocumentCount();
+         res.send({success: true, result, count})
      })
 
     /*  GET ALL THE PRODUCTS BASED ON CURRENT USER */
