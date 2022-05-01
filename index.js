@@ -95,7 +95,71 @@ async function run(){
     })
 
 
+    /* DELETE PRODUCT FROM MONGODB */
+    app.delete("/product", VerifyToken, async(req, res) => {
+        const id = req.query.id;
+        const decodedId = req.decoded.uid;
+        const userId = req.query.userId;
+        if(decodedId === userId){
+            const result = await productsCollection.deleteOne({_id: ObjectId(id)});
+            if(result.acknowledged){
+                res.send({success: true, message: "Product successfully deleted."})
+            }
+        }else{
+            res.status(403).send({success: false, message: "Forbidden Request"})
+        }
+    })
 
+
+    /* DELETE CURRENT USER PRODUCT  */
+    app.delete("/current-user-product", VerifyToken, async(req, res)=>{
+        const id = req.query.id;
+        const decodedId = req.decoded.uid;
+        const userId = req.query.userId;
+        if(decodedId === userId){
+            const result = await productsCollection.deleteOne({_id: ObjectId(id)});
+            if(result.acknowledged){
+                res.send({success: true, message: "Product successfully deleted."})
+            }
+        }else{
+            res.status(403).send({success: false, message: "Forbidden Request"})
+        }        
+    })
+
+    /* EDIT CURRENT PRODUCT ITEMS FROM MONGODB */
+    app.put("/product",VerifyToken, async(req, res) => {
+        const queyId = req.query.id;
+        const data = req.body.data;
+        const decodedId = req.decoded;
+        const sendingId = req.query.uid;
+        if(decodedId.uid === sendingId){
+            const query = {_id: ObjectId(queyId)}
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: data,
+              };
+            const result = await productsCollection.updateOne(query,updateDoc,options );
+            if(result.acknowledged){
+                res.send({success: true, message: "Product Updated  successfully done."})
+            }
+        }else{
+            res.status(403).send({success: false, message: "Forbidden Request"})
+        };
+        
+    })
+
+
+    /* SEARCH PRODUCT FOR CURRENT USER */
+    app.get("/search", async(req, res)=>{
+        const userId = req.query.id;
+        const searchText = req.query.search.toLowerCase();
+        const query = {'author.uid': userId}
+        const cursor = await productsCollection.find(query);
+        const result = await cursor.toArray();
+        const searchedProduct = result.filter(res => res.name.toLowerCase().includes(searchText))
+        res.send({success: true, result: searchedProduct})
+               
+    })
 
 
      /* GET A USER INFO AND CREATE A ACCESS_TOKEN */
