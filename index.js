@@ -177,6 +177,29 @@ async function run(){
      })
 
 
+     /* TO UPDATE OF STOCK QUANTITY OF MONGODB */
+     app.put('/increase-stock', async(req, res)=>{
+         const productId = req.query.id;
+         const stockQuantity = Number(req.body.stock);
+         const query = {_id: ObjectId(productId)}
+         if(productId || stockQuantity){
+             const result = await productsCollection.updateOne(query, {$inc: {stockQty: -stockQuantity}})
+             res.send({success: true, result})
+         }
+     })
+
+     /* TO DECREASE OF STOCK QUANTITY OF MONGODB */
+     app.put('/update-stock', async(req, res)=>{
+         const productId = req.query.id;
+         const stockQuantity = Number(req.body.stock);
+         const query = {_id: ObjectId(productId)}
+         if(productId || stockQuantity){
+             const result = await productsCollection.updateOne(query, {$inc: {stockQty: +stockQuantity}})
+             res.send({success: true, result})
+         }
+     })
+
+
     }catch(err){
         console.log(err.message);
     }
