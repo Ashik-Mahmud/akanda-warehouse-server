@@ -31,6 +31,7 @@ async function run(){
      const reviewsCollection =  client.db("reviews-db").collection("reviews");
      const teamsCollection = client.db("teams-db").collection("teams")
      const productsCollection = client.db("products-db").collection('products');
+     const blogsCollection = client.db("blogs-db").collection("blogs")
      /* GET REVIEWS FROM MONGODB DATABASES */
      app.get("/reviews", async(req, res)=>{
          const query = {};
@@ -163,6 +164,88 @@ async function run(){
         res.send({success: true, result: searchedProduct})
                
     })
+
+
+    /* 
+        -------------------------
+        CRUD OPERATION FOR BLOGS
+        --------------------------
+    */
+
+    /* ADD BLOG INTO MONGODB */
+    app.post('/blogs',VerifyToken, async(req, res) =>{
+        const blogData = req.body.data;
+        const uId = req.body.data.author.uid;
+        const decodedUid = req.decoded.uid;
+        if(uId === decodedUid){
+            const result = await blogsCollection.insertOne(blogData);
+            if(result.acknowledged){
+                res.send({success: true, message: "Blog saved successfully done."})
+            }
+        }else{
+            res.status(403).send({success: false, message: "Forbidden Request"})
+        }
+                
+    })
+
+   /*  GET ALL THE BLOGS BASED ON CURRENT USER ID */
+   app.get("/user-blogs", VerifyToken, async(req, res)=>{
+       const decodedId = req.decoded.uid;
+       const userId = req.query.uid;
+       if(decodedId ===  userId){
+           const query = {"author.uid": userId}
+           const cursor = await blogsCollection.find(query);
+           const result = await cursor.toArray();
+           res.send({success: true, result})
+       }else{
+        res.status(403).send({success: false, message: "Forbidden Request"})
+       }
+   })
+
+  /* DELETE BLOG BASED ON BLOG ID */
+  app.delete("/blogs", VerifyToken, async(req, res) =>{
+    const uid = req.query.userId;
+    const decodedId = req.decoded.uid;
+    if(uid === decodedId){
+        const query = {_id: ObjectId(req.query.id)}
+        const result = await blogsCollection.deleteOne(query);
+        if(result.acknowledged){
+            res.send({success: true, message: "Blog deleted successfully done."})
+        }
+    }else{
+        res.status(403).send({success: false, message: "Forbidden Request"})
+    }
+  })
+
+  /* UPDATE BLOG BASED ON BLOG ID */
+  app.put("/blogs", VerifyToken, async(req, res) => {
+      const decodedId = req.decoded.uid;
+      const uid = req.query.uid;
+      const data = req.body.data;
+      const id = req.query.id;
+      if(decodedId === uid){
+          const options = {upsert: true};
+          const updateDoc = {$set: data}
+          const filter = {_id: ObjectId(id)}
+          const result = await blogsCollection.updateOne(filter, updateDoc, options)
+          if(result.acknowledged){
+              res.send({success: true, message: "Updated successfully done."})
+          }
+
+      }else{
+        res.status(403).send({success: false, message: "Forbidden Request"})
+      }
+  })
+
+
+  /* GET ALL THE BLOGS FROM MONGODB */
+  app.get("/all-blogs", async(req, res)=>{
+      const query = {};
+      const cursor = await blogsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send({success: true, result})
+  })
+
 
 
      /* GET A USER INFO AND CREATE A ACCESS_TOKEN */
