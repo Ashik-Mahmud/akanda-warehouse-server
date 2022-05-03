@@ -52,9 +52,9 @@ async function run(){
 
 
      /* ADD PRODUCT INTO MONGODB SERVER */
-     app.post("/add-product",VerifyToken, async(req,res) => {
+     app.post("/add-product", VerifyToken, async(req,res) => {
          const data = req.body.data;
-         const decodedId = req.decoded;
+         const decodedId = req.decoded;        
          const sendingUid = req.body.data.author.uid;
          if(decodedId.uid === sendingUid){
              const result = await productsCollection.insertOne(data);
